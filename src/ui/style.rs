@@ -88,10 +88,12 @@ pub fn init_theme_sync() {
             return;
         }
         if let Some((namespace, key, value)) = params.get::<(String, String, gtk4::glib::Variant)>()
-            && namespace == APPEARANCE_NAMESPACE && key == COLOR_SCHEME_KEY
-                && let Some(value) = unwrap_variant(value).get::<u32>() {
-                    apply_color_scheme(value);
-                }
+            && namespace == APPEARANCE_NAMESPACE
+            && key == COLOR_SCHEME_KEY
+            && let Some(value) = unwrap_variant(value).get::<u32>()
+        {
+            apply_color_scheme(value);
+        }
     });
 }
 
