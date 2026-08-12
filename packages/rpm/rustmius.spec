@@ -1,11 +1,17 @@
+# Release binaries are built with `strip = "symbols"` (see [profile.release]
+# in Cargo.toml) across every packaging channel (deb, AUR, GitHub releases),
+# so there is no debug info here for Fedora's debuginfo/debugsource split to
+# extract in the first place.
+%global debug_package %{nil}
+
 Name:           rustmius
 Version:        2.5.0
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Local Termius alternative for Linux (GTK4)
 
 License:        AGPL-3.0-or-later
 URL:            https://github.com/Cleboost/Rustmius
-# Generated locally via `git archive`, see packages/rpm/build-rpm.sh
+# Generated locally from the working tree, see packages/rpm/build-rpm.sh
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:  cargo
@@ -34,7 +40,11 @@ manager, and secure secret storage through the system keyring.
 %autosetup -n %{name}-%{version}
 
 %build
-cargo build --release --locked
+if [ "${SKIP_BUILD:-0}" = "1" ] && [ -x target/release/%{name} ]; then
+    echo ">> Reusing prebuilt %{name} binary (SKIP_BUILD=1)"
+else
+    cargo build --release --locked
+fi
 
 %install
 install -Dm0755 target/release/%{name} %{buildroot}%{_bindir}/%{name}
@@ -70,6 +80,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/org.rustmius.Rustmius
 %{_mandir}/man1/%{name}.1*
 
 %changelog
+* Wed Aug 12 2026 Subhan Gadirli <subhanqedirli@protonmail.com> - 2.5.0-4
+- Support SKIP_BUILD=1 to reuse a prebuilt binary (used by CI to avoid
+  recompiling for each package format).
+
 * Wed Aug 12 2026 Subhan Gadirli <subhanqedirli@protonmail.com> - 2.5.0-3
 - Fix dark-mode sync: xdg-desktop-portal-gnome double-wraps the
   Settings.Read/SettingChanged value in an extra GVariant "v" layer,
